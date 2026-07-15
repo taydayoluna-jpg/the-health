@@ -601,7 +601,7 @@ footer{
 .result-title{ font-size:13px; margin-bottom:2px; }
 .result-artist{ font-size:11px; color:var(--muted); margin-bottom:10px; font-family:'JetBrains Mono',monospace; }
 .result-actions{ display:flex; gap:6px; }
-.result-actions button{
+.result-actions button, .result-actions a{
   flex:1;
   background:var(--panel);
   border:1px solid var(--line);
@@ -610,8 +610,68 @@ footer{
   border-radius:7px;
   font-size:11px;
   cursor:pointer;
+  text-align:center;
+  text-decoration:none;
+  box-sizing:border-box;
 }
-.result-actions button:hover{ border-color:var(--amber-dim); }
+.result-actions button:hover, .result-actions a:hover{ border-color:var(--amber-dim); }
+.result-actions button:disabled{ opacity:0.4; cursor:not-allowed; }
+.result-actions button:disabled:hover{ border-color:var(--line); }
+
+/* Explore sub-tabs (Music / Videos / Images) */
+.explore-subtabs{ display:flex; gap:8px; margin-bottom:14px; }
+.explore-subtab{
+  background:var(--panel);
+  border:1px solid var(--line);
+  color:var(--muted);
+  padding:8px 16px;
+  border-radius:8px;
+  font-size:13px;
+  cursor:pointer;
+}
+.explore-subtab.active{ color:var(--text); border-color:var(--amber-dim); background:var(--panel-light); }
+.explore-subtab:hover{ border-color:var(--amber-dim); }
+.explore-mode{ display:none; }
+.explore-mode.active{ display:block; }
+
+/* Video player embed */
+.video-player-slot:empty{ display:none; }
+.video-player-wrap{
+  margin:14px 0;
+  border:1px solid var(--line);
+  border-radius:10px;
+  overflow:hidden;
+  background:var(--panel);
+}
+.video-player-title{ padding:10px 12px; font-size:13px; border-bottom:1px solid var(--line); }
+.video-player-wrap iframe{ display:block; }
+
+/* Image results grid */
+.image-results{
+  display:grid;
+  grid-template-columns:repeat(auto-fill, minmax(140px, 1fr));
+  gap:12px;
+  margin-top:14px;
+}
+.image-result-card{
+  display:block;
+  border:1px solid var(--line);
+  border-radius:8px;
+  overflow:hidden;
+  background:var(--panel);
+  text-decoration:none;
+  color:var(--text);
+}
+.image-result-card img{ width:100%; height:120px; object-fit:cover; display:block; }
+.image-result-title{
+  font-size:11px;
+  padding:6px 8px;
+  color:var(--muted);
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.image-result-card:hover{ border-color:var(--amber-dim); }
 .explore-empty{
   color:var(--muted);
   font-size:13px;
