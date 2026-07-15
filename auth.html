@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Hearth · Sign in</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body class="auth-body">
+
+<div class="auth-wrap">
+  <div class="auth-card">
+    <div class="auth-brand">
+      <div class="flame">🔥</div>
+      <h1>The Hearth</h1>
+      <p>sign in to pull up a seat</p>
+    </div>
+
+    <div class="auth-msg" id="authMsg"></div>
+
+    <!-- LOGIN / REGISTER TABS -->
+    <div id="mainAuthView">
+      <div class="auth-tabs">
+        <button class="active" id="tabLogin" onclick="switchAuthTab('login')">Log in</button>
+        <button id="tabRegister" onclick="switchAuthTab('register')">Create account</button>
+      </div>
+
+      <!-- LOGIN FORM -->
+      <div class="auth-view active" id="loginView">
+        <div class="field">
+          <label>Email</label>
+          <input type="email" id="loginEmail" placeholder="you@example.com">
+        </div>
+        <div class="field">
+          <label>Password</label>
+          <input type="password" id="loginPassword" placeholder="••••••••">
+        </div>
+        <button class="auth-submit" onclick="handleLogin()">Log in</button>
+        <div class="auth-links">
+          <a onclick="showForgotPassword()">Forgot password?</a>
+          <a onclick="switchAuthTab('register')">Create an account</a>
+        </div>
+      </div>
+
+      <!-- REGISTER FORM -->
+      <div class="auth-view" id="registerView">
+        <div class="field">
+          <label>Name</label>
+          <input type="text" id="registerName" placeholder="What should we call you?">
+        </div>
+        <div class="field">
+          <label>Email</label>
+          <input type="email" id="registerEmail" placeholder="you@example.com">
+        </div>
+        <div class="field">
+          <label>Password</label>
+          <input type="password" id="registerPassword" placeholder="At least 6 characters">
+        </div>
+        <div class="field">
+          <label>Confirm password</label>
+          <input type="password" id="registerConfirm" placeholder="Type it again">
+        </div>
+        <button class="auth-submit" onclick="handleRegister()">Create account</button>
+        <div class="auth-links">
+          <a onclick="switchAuthTab('login')">Already have an account? Log in</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- FORGOT PASSWORD -->
+    <div class="auth-view" id="forgotStep1View">
+      <div class="reset-note">Enter the email on your account and we'll send you a password reset link.</div>
+      <div class="field">
+        <label>Email</label>
+        <input type="email" id="forgotEmail" placeholder="you@example.com">
+      </div>
+      <button class="auth-submit" onclick="handleRequestReset()">Send reset link</button>
+      <div class="auth-links">
+        <a onclick="switchAuthTab('login')">Back to log in</a>
+        <span></span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabaseClient.js"></script>
+<script src="auth.js"></script>
+</body>
+</html>

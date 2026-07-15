@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Hearth · Chat</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="app chat-page">
+  <div class="chat-topbar">
+    <div>
+      <div class="eyebrow">a small room, always on</div>
+      <h1 style="font-size:26px;">The Hearth</h1>
+    </div>
+    <div class="header-actions">
+      <a class="admin-link" id="adminLink" href="admin.html" style="display:none">🛡 Admin</a>
+      <div class="chat-user-pill">
+        <div class="avatar-wrap" onclick="triggerAvatarUpload()" title="Change profile picture">
+          <div class="avatar" id="myAvatar">Y</div>
+          <span class="avatar-edit-badge">📷</span>
+        </div>
+        <div class="who">
+          <span id="myName">You</span>
+          <span class="email" id="myEmail">you@example.com</span>
+        </div>
+      </div>
+      <button class="logout-btn" onclick="logout()">Log out</button>
+    </div>
+  </div>
+
+  <div class="claim-admin-banner" id="claimAdminBanner" style="display:none">
+    <span>No admin is set up on this browser yet.</span>
+    <button onclick="claimAdminAccess()">Make my account the admin</button>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" id="tabRoom" onclick="switchView('room')">The Room</button>
+    <button class="tab" id="tabInbox" onclick="switchView('inbox')">Inbox <span id="inboxCountLabel"></span></button>
+    <button class="tab" id="tabExplore" onclick="switchView('explore')">Explore</button>
+    <button class="tab" id="tabStatus" onclick="switchView('status')">Status</button>
+  </div>
+
+  <!-- ROOM VIEW -->
+  <div class="view active" id="viewRoom">
+    <div class="grid">
+      <div class="panel">
+        <h2>Who's around <span class="count" id="presenceCount"></span></h2>
+        <div class="hearth-stage" id="hearthStage">
+          <div class="hearth-glow" id="hearthGlow"></div>
+          <div class="hearth-core" id="hearthCore"></div>
+        </div>
+        <div class="vibe-picker" id="vibePicker"></div>
+      </div>
+
+      <div class="panel chat-panel">
+        <h2>Group chat <span class="count" id="msgCount"></span></h2>
+        <div class="chat-stream" id="chatStream"></div>
+        <div id="chatAttachPreview"></div>
+        <div class="chat-input-row">
+          <button class="attach-btn" title="Attach photo or video" onclick="triggerAttach('room')">📎</button>
+          <button class="attach-btn" title="Record live photo/video" onclick="openCaptureModal('room')">🎥</button>
+          <button class="attach-btn" title="Record a voice note" onclick="openVoiceModal('room')">🎙️</button>
+          <input type="text" id="chatInput" placeholder="Say something... (no length limit)" onkeydown="if(event.key==='Enter')sendChatMessage()">
+          <button onclick="sendChatMessage()">Send</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="now-playing">
+      <button class="play-btn" id="playBtn" onclick="togglePlay()">▶</button>
+      <div class="track-info">
+        <div class="track-name" id="trackName">Nothing queued yet</div>
+        <div class="track-sub" id="trackSub">search Explore to add a track</div>
+      </div>
+      <div class="waveform" id="waveform"></div>
+      <div class="queue" id="queueList"></div>
+    </div>
+  </div>
+
+  <!-- INBOX VIEW -->
+  <div class="view" id="viewInbox">
+    <div class="inbox-grid">
+      <div class="panel">
+        <h2>Direct messages</h2>
+        <div class="dm-list" id="dmList"></div>
+      </div>
+      <div class="panel chat-panel">
+        <h2 id="dmThreadTitle">Select a conversation</h2>
+        <div class="chat-stream" id="dmStream"></div>
+        <div id="dmAttachPreview"></div>
+        <div class="chat-input-row">
+          <button class="attach-btn" title="Attach photo or video" onclick="triggerAttach('dm')">📎</button>
+          <button class="attach-btn" title="Record live photo/video" onclick="openCaptureModal('dm')">🎥</button>
+          <button class="attach-btn" title="Record a voice note" onclick="openVoiceModal('dm')">🎙️</button>
+          <input type="text" id="dmInput" placeholder="Message privately..." onkeydown="if(event.key==='Enter')sendDm()">
+          <button onclick="sendDm()">Send</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- EXPLORE VIEW -->
+  <div class="view" id="viewExplore">
+    <div class="panel">
+      <h2>Explore</h2>
+      <div class="explore-note">
+        Search a public music catalog and stream official preview clips — this plays licensed previews, it doesn't download files. Anything you add to the queue is visible to everyone in the room.
+      </div>
+      <div class="explore-search">
+        <input type="text" id="exploreInput" placeholder="Search songs or artists..." onkeydown="if(event.key==='Enter')runExploreSearch()">
+        <button onclick="runExploreSearch()">Search</button>
+      </div>
+      <div class="explore-results" id="exploreResults">
+        <div class="explore-empty">Search for something to see previews here.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STATUS VIEW -->
+  <div class="view" id="viewStatus">
+    <div class="panel">
+      <h2>Status</h2>
+      <div class="explore-note">Photos and videos here disappear after 24 hours, just like WhatsApp Status. Everyone registered can see your updates while they're live.</div>
+      <div class="status-my-row" id="myStatusRow"></div>
+      <div class="status-divider">Recent updates</div>
+      <div class="status-list" id="statusList"></div>
+    </div>
+  </div>
+
+  <div class="storage-note">
+    accounts, messages, DMs, avatars, statuses, and the shared queue all live in this browser's localStorage — no server involved.<br>
+    open this page in a second tab (logged in as a different account) to see the room, DMs, and queue sync live.
+  </div>
+
+  <input type="file" id="fileInput" accept="image/*,video/*" style="display:none" onchange="handleFileChosen(event)">
+  <input type="file" id="avatarFileInput" accept="image/*" style="display:none" onchange="handleAvatarChosen(event)">
+
+  <!-- Quick capture modal -->
+  <div class="modal-overlay" id="captureModalOverlay" style="display:none">
+    <div class="modal-box">
+      <div class="modal-header">
+        <span>Quick capture</span>
+        <button class="modal-close" onclick="closeCaptureModal()">✕</button>
+      </div>
+      <div class="camera-viewport" id="modalViewport">
+        <div class="camera-placeholder" id="modalPlaceholder">Starting camera...</div>
+        <video id="modalVideo" autoplay muted playsinline style="display:none"></video>
+        <div class="rec-dot" id="modalRecDot" style="display:none"><span class="dot"></span>REC</div>
+      </div>
+      <div id="modalCaptureResult" style="display:none"></div>
+      <div class="modal-controls" id="modalLiveControls">
+        <button class="cam-btn" onclick="modalTakePhoto()">📷 Snap photo</button>
+        <button class="cam-btn" id="modalRecordBtn" onclick="modalToggleRecording()">⏺ Record video</button>
+      </div>
+      <div class="modal-controls" id="modalResultControls" style="display:none">
+        <button class="cam-btn primary" onclick="modalSendCapture()">Send</button>
+        <button class="cam-btn" onclick="modalRetake()">Retake</button>
+        <button class="cam-btn danger" onclick="closeCaptureModal()">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Voice note modal -->
+  <div class="modal-overlay" id="voiceModalOverlay" style="display:none">
+    <div class="modal-box">
+      <div class="modal-header">
+        <span>Voice note</span>
+        <button class="modal-close" onclick="closeVoiceModal()">✕</button>
+      </div>
+      <div class="voice-stage" id="voiceStage">
+        <div class="voice-mic" id="voiceMic">🎙️</div>
+        <div class="voice-timer" id="voiceTimer">0:00</div>
+        <div class="voice-status" id="voiceStatus">Tap record to start</div>
+      </div>
+      <div id="voiceResult" style="display:none"></div>
+      <div class="modal-controls" id="voiceLiveControls">
+        <button class="cam-btn primary" id="voiceRecordBtn" onclick="voiceToggleRecording()">⏺ Start recording</button>
+      </div>
+      <div class="modal-controls" id="voiceResultControls" style="display:none">
+        <button class="cam-btn primary" onclick="voiceSendCapture()">Send</button>
+        <button class="cam-btn" onclick="voiceRetake()">Retake</button>
+        <button class="cam-btn danger" onclick="closeVoiceModal()">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Fullscreen status/story viewer -->
+  <div class="modal-overlay status-viewer-overlay" id="statusViewerOverlay" style="display:none">
+    <div class="status-viewer-box">
+      <div class="status-progress-row" id="statusProgressRow"></div>
+      <div class="status-viewer-header">
+        <div class="bubble-avatar" id="statusViewerAvatar"></div>
+        <div class="status-viewer-name" id="statusViewerName"></div>
+        <div class="status-viewer-time" id="statusViewerTime"></div>
+        <button class="modal-close" onclick="closeStatusViewer()">✕</button>
+      </div>
+      <div class="status-viewer-media" id="statusViewerMedia"></div>
+      <div class="status-viewer-nav">
+        <div class="status-nav-zone left" onclick="statusPrev()"></div>
+        <div class="status-nav-zone right" onclick="statusNext()"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="chat.js"></script>
+</body>
+</html>

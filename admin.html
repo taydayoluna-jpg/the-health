@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Hearth · Admin</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="app admin-page">
+  <div class="chat-topbar">
+    <div>
+      <div class="eyebrow">owner controls</div>
+      <h1 style="font-size:26px;">Admin</h1>
+    </div>
+    <div class="header-actions">
+      <a class="admin-link" href="chat.html">← Back to chat</a>
+      <button class="logout-btn" onclick="logout()">Log out</button>
+    </div>
+  </div>
+
+  <div id="notAuthorizedView" style="display:none">
+    <div class="panel">
+      <h2>Not authorized</h2>
+      <p style="color:var(--muted); font-size:13px; margin:0;">Your account doesn't have admin access on this browser.</p>
+    </div>
+  </div>
+
+  <div id="adminView" style="display:none">
+
+    <div class="admin-stats-grid" id="adminStats"></div>
+
+    <div class="panel">
+      <h2>Signups, last 7 days</h2>
+      <div class="admin-bar-chart" id="signupChart"></div>
+    </div>
+
+    <div class="panel">
+      <h2>Tab popularity <span class="count">(navigation activity only — never message content)</span></h2>
+      <div class="admin-bar-list" id="tabPopularity"></div>
+    </div>
+
+    <div class="panel">
+      <h2>Add an account</h2>
+      <div class="admin-add-form">
+        <input type="text" id="newUserName" placeholder="Name">
+        <input type="email" id="newUserEmail" placeholder="Email">
+        <input type="password" id="newUserPassword" placeholder="Password (min 6 characters)">
+        <select id="newUserRole">
+          <option value="user">User</option>
+          <option value="admin">Admin</option>
+        </select>
+        <button onclick="handleAddUser()">Add account</button>
+      </div>
+      <div class="admin-msg" id="addUserMsg"></div>
+    </div>
+
+    <div class="panel">
+      <h2>All accounts <span class="count" id="userCount"></span></h2>
+      <div class="admin-user-list" id="adminUserList"></div>
+    </div>
+
+  </div>
+</div>
+
+<script src="admin.js"></script>
+</body>
+</html>
