@@ -418,8 +418,25 @@ function switchView(view){
 // Explore — real music preview search (iTunes Search API, no key needed)
 // and a shared "now playing" queue everyone in the room can see.
 // ==========================================================================
+
+// ---- API keys: get these free, see setup notes at bottom of this file ----
+const YOUTUBE_API_KEY = 'AIzaSyCKwHs2nzTdUgBYw_nQK8FkIWWabBuOtg8';
+const PEXELS_API_KEY = 'NWxWwUssIDqpE4W35oKPGlF4MaViOZ0NIH7JA8kUfxEsDoSWKduGStJa';
+
+function switchExploreMode(mode){
+  ['music','video','image'].forEach(m => {
+    document.getElementById('exploreMode' + m.charAt(0).toUpperCase() + m.slice(1)).classList.toggle('active', m === mode);
+    document.getElementById('exploreSub' + m.charAt(0).toUpperCase() + m.slice(1)).classList.toggle('active', m === mode);
+  });
+  if(mode !== 'video' && currentVideoPlayer){
+    document.getElementById('videoPlayerSlot').innerHTML = '';
+    currentVideoPlayer = null;
+  }
+}
+
 let currentPreviewAudio = null;
 let roomAudio = null;
+let currentVideoPlayer = null;
 
 async function runExploreSearch(){
   const query = document.getElementById('exploreInput').value.trim();
@@ -427,7 +444,7 @@ async function runExploreSearch(){
   if(!query) return;
   results.innerHTML = '<div class="explore-empty">Searching...</div>';
   try{
-    const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(query)}&media=music&limit=12`);
+    const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(query)}&media=music&entity=song&limit=25`);
     const data = await res.json();
     renderExploreResults(data.results || []);
   } catch(err){
@@ -444,6 +461,7 @@ function renderExploreResults(items){
     return;
   }
   items.forEach(item => {
+    const hasPreview = !!item.previewUrl;
     const card = document.createElement('div');
     card.className = 'result-card';
     card.innerHTML = `
@@ -451,11 +469,14 @@ function renderExploreResults(items){
       <div class="result-title">${item.trackName}</div>
       <div class="result-artist">${item.artistName}</div>
       <div class="result-actions">
-        <button data-role="play">▶ Preview</button>
-        <button data-role="queue">+ Queue</button>
+        <button data-role="play" ${hasPreview ? '' : 'disabled title="No preview clip available for this track"'}>${hasPreview ? '▶ Preview' : 'No preview'}</button>
+        <button data-role="queue" ${hasPreview ? '' : 'disabled'}>+ Queue</button>
+        ${hasPreview ? `<a data-role="download" href="${item.previewUrl}" download title="Downloads the 30-second preview clip only, not the full song">⬇</a>` : ''}
       </div>`;
-    card.querySelector('[data-role="play"]').onclick = () => playPreview(item, card.querySelector('[data-role="play"]'));
-    card.querySelector('[data-role="queue"]').onclick = () => addToSharedQueue(item);
+    if(hasPreview){
+      card.querySelector('[data-role="play"]').onclick = () => playPreview(item, card.querySelector('[data-role="play"]'));
+      card.querySelector('[data-role="queue"]').onclick = () => addToSharedQueue(item);
+    }
     results.appendChild(card);
   });
 }
@@ -463,10 +484,16 @@ function renderExploreResults(items){
 function playPreview(item, btn){
   if(currentPreviewAudio){ currentPreviewAudio.pause(); currentPreviewAudio = null; }
   if(btn.textContent.includes('Pause')){ btn.textContent = '▶ Preview'; return; }
-  document.querySelectorAll('[data-role="play"]').forEach(b => b.textContent = '▶ Preview');
+  document.querySelectorAll('[data-role="play"]').forEach(b => { if(!b.disabled) b.textContent = '▶ Preview'; });
   currentPreviewAudio = new Audio(item.previewUrl);
-  currentPreviewAudio.play();
-  btn.textContent = '❚❚ Pause';
+  btn.textContent = '⏳ Loading...';
+  currentPreviewAudio.play().then(() => {
+    btn.textContent = '❚❚ Pause';
+  }).catch(err => {
+    console.error('Preview playback failed:', err);
+    btn.textContent = '⚠ Playback failed';
+    setTimeout(() => { btn.textContent = '▶ Preview'; }, 2000);
+  });
   currentPreviewAudio.onended = () => { btn.textContent = '▶ Preview'; };
 }
 
@@ -480,6 +507,122 @@ function addToSharedQueue(item){
   renderNowPlaying();
   addRoomMessage(`added "${item.trackName}" to the room queue 🎶`, null);
   switchView('room');
+}
+
+// ==========================================================================
+// Explore — Videos (YouTube Data API search + official embedded player)
+// ==========================================================================
+async function runVideoSearch(){
+  const query = document.getElementById('videoInput').value.trim();
+  const results = document.getElementById('videoResults');
+  if(!query) return;
+  if(YOUTUBE_API_KEY.startsWith('PASTE_')){
+    results.innerHTML = '<div class="explore-empty">YouTube search isn\'t set up yet — add your API key in chat.js (see YOUTUBE_API_KEY).</div>';
+    return;
+  }
+  results.innerHTML = '<div class="explore-empty">Searching...</div>';
+  try{
+    const res = await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=25&q=${encodeURIComponent(query)}&key=${YOUTUBE_API_KEY}`);
+    const data = await res.json();
+    if(data.error){
+      results.innerHTML = `<div class="explore-empty">YouTube search failed: ${data.error.message}</div>`;
+      return;
+    }
+    renderVideoResults(data.items || []);
+  } catch(err){
+    results.innerHTML = '<div class="explore-empty">Search failed — check your internet connection.</div>';
+    console.error(err);
+  }
+}
+
+function renderVideoResults(items){
+  const results = document.getElementById('videoResults');
+  results.innerHTML = '';
+  if(items.length === 0){
+    results.innerHTML = '<div class="explore-empty">No results. Try a different search.</div>';
+    return;
+  }
+  items.forEach(item => {
+    const videoId = item.id.videoId;
+    const card = document.createElement('div');
+    card.className = 'result-card';
+    card.innerHTML = `
+      <img src="${item.snippet.thumbnails.medium.url}" alt="${item.snippet.title}">
+      <div class="result-title">${item.snippet.title}</div>
+      <div class="result-artist">${item.snippet.channelTitle}</div>
+      <div class="result-actions">
+        <button data-role="play">▶ Play here</button>
+        <a href="https://www.youtube.com/watch?v=${videoId}" target="_blank" rel="noopener">Open on YouTube</a>
+      </div>`;
+    card.querySelector('[data-role="play"]').onclick = () => playVideo(videoId, item.snippet.title);
+    results.appendChild(card);
+  });
+}
+
+function playVideo(videoId, title){
+  const slot = document.getElementById('videoPlayerSlot');
+  slot.innerHTML = `
+    <div class="video-player-wrap">
+      <div class="video-player-title">${title}</div>
+      <iframe width="100%" height="360" src="https://www.youtube.com/embed/${videoId}?autoplay=1"
+        title="${title}" frameborder="0"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+        allowfullscreen></iframe>
+    </div>`;
+  currentVideoPlayer = videoId;
+  slot.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+// ==========================================================================
+// Explore — Images (Pexels API — free, high-quality stock photos)
+// Note: Pexels is a royalty-free stock library, so results are strong for
+// general subjects/objects/scenery but inconsistent for specific named
+// celebrities (stock libraries rarely license individual people's likeness).
+// ==========================================================================
+async function runImageSearch(){
+  const query = document.getElementById('imageInput').value.trim();
+  const results = document.getElementById('imageResults');
+  if(!query) return;
+  if(PEXELS_API_KEY.startsWith('PASTE_')){
+    results.innerHTML = '<div class="explore-empty">Image search isn\'t set up yet — add your API key in chat.js (see PEXELS_API_KEY).</div>';
+    return;
+  }
+  results.innerHTML = '<div class="explore-empty">Searching...</div>';
+  try{
+    const res = await fetch(`https://api.pexels.com/v1/search?query=${encodeURIComponent(query)}&per_page=24`, {
+      headers: { Authorization: PEXELS_API_KEY }
+    });
+    const data = await res.json();
+    if(data.error){
+      results.innerHTML = `<div class="explore-empty">Image search failed: ${data.error}</div>`;
+      return;
+    }
+    renderImageResults(data.photos || []);
+  } catch(err){
+    results.innerHTML = '<div class="explore-empty">Search failed — check your internet connection.</div>';
+    console.error(err);
+  }
+}
+
+function renderImageResults(items){
+  const results = document.getElementById('imageResults');
+  results.innerHTML = '';
+  if(items.length === 0){
+    results.innerHTML = '<div class="explore-empty">No results. Try a different search.</div>';
+    return;
+  }
+  items.forEach(item => {
+    const card = document.createElement('a');
+    card.className = 'image-result-card';
+    card.href = item.url;
+    card.target = '_blank';
+    card.rel = 'noopener';
+    card.title = item.alt || 'Photo by ' + item.photographer;
+    card.innerHTML = `
+      <img src="${item.src.medium}" alt="${item.alt || ''}" loading="lazy" onerror="this.closest('.image-result-card').style.display='none'">
+      <div class="image-result-title">📷 ${item.photographer}</div>`;
+    results.appendChild(card);
+  });
 }
 
 function renderNowPlaying(){
