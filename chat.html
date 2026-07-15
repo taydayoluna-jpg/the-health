@@ -105,15 +105,53 @@
   <div class="view" id="viewExplore">
     <div class="panel">
       <h2>Explore</h2>
-      <div class="explore-note">
-        Search a public music catalog and stream official preview clips — this plays licensed previews, it doesn't download files. Anything you add to the queue is visible to everyone in the room.
+      <div class="explore-subtabs">
+        <button class="explore-subtab active" id="exploreSubMusic" onclick="switchExploreMode('music')">🎵 Music</button>
+        <button class="explore-subtab" id="exploreSubVideo" onclick="switchExploreMode('video')">▶ Videos</button>
+        <button class="explore-subtab" id="exploreSubImage" onclick="switchExploreMode('image')">🖼 Images</button>
       </div>
-      <div class="explore-search">
-        <input type="text" id="exploreInput" placeholder="Search songs or artists..." onkeydown="if(event.key==='Enter')runExploreSearch()">
-        <button onclick="runExploreSearch()">Search</button>
+
+      <!-- MUSIC MODE -->
+      <div class="explore-mode active" id="exploreModeMusic">
+        <div class="explore-note">
+          Search a public music catalog and stream official preview clips — this plays licensed previews, it doesn't download full songs. Anything you add to the queue is visible to everyone in the room.
+        </div>
+        <div class="explore-search">
+          <input type="text" id="exploreInput" placeholder="Search songs or artists..." onkeydown="if(event.key==='Enter')runExploreSearch()">
+          <button onclick="runExploreSearch()">Search</button>
+        </div>
+        <div class="explore-results" id="exploreResults">
+          <div class="explore-empty">Search for something to see previews here.</div>
+        </div>
       </div>
-      <div class="explore-results" id="exploreResults">
-        <div class="explore-empty">Search for something to see previews here.</div>
+
+      <!-- VIDEO MODE -->
+      <div class="explore-mode" id="exploreModeVideo">
+        <div class="explore-note">
+          Search YouTube and watch full videos right here using YouTube's own player — official music videos, clips, anything on YouTube.
+        </div>
+        <div class="explore-search">
+          <input type="text" id="videoInput" placeholder="Search YouTube..." onkeydown="if(event.key==='Enter')runVideoSearch()">
+          <button onclick="runVideoSearch()">Search</button>
+        </div>
+        <div class="video-player-slot" id="videoPlayerSlot"></div>
+        <div class="explore-results" id="videoResults">
+          <div class="explore-empty">Search for something to see videos here.</div>
+        </div>
+      </div>
+
+      <!-- IMAGE MODE -->
+      <div class="explore-mode" id="exploreModeImage">
+        <div class="explore-note">
+          Search high-quality free stock photos — objects, places, nature, general people, etc. Results link back to the photographer's page. Note: this is a stock-photo library, so it's strong for general subjects but won't reliably find photos of specific named celebrities.
+        </div>
+        <div class="explore-search">
+          <input type="text" id="imageInput" placeholder="Search images..." onkeydown="if(event.key==='Enter')runImageSearch()">
+          <button onclick="runImageSearch()">Search</button>
+        </div>
+        <div class="image-results" id="imageResults">
+          <div class="explore-empty">Search for something to see images here.</div>
+        </div>
       </div>
     </div>
   </div>
