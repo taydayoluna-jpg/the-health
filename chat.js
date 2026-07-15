@@ -564,7 +564,7 @@ function playVideo(videoId, title){
   slot.innerHTML = `
     <div class="video-player-wrap">
       <div class="video-player-title">${title}</div>
-      <iframe width="100%" height="360" src="https://www.youtube.com/embed/${videoId}?autoplay=1"
+      <iframe width="100%" height="360" src="https://www.youtube.com/embed/${videoId}"
         title="${title}" frameborder="0"
         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
         allowfullscreen></iframe>
